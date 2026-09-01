@@ -22,7 +22,7 @@ if uploaded_file is not None:
     else:
         with st.spinner("ここにAIの判定結果が出ます。解析中..."):
             try:
-                # 🛠️ Streamlitの画像データを、1番目と同じ純粋なバイトデータに完全変換
+                # 🛠️ 画像を純粋なバイトデータに変換
                 image_bytes = uploaded_file.getvalue()
                 
                 # 画像の形式を自動判別
@@ -32,7 +32,7 @@ if uploaded_file is not None:
                 
                 client = genai.Client(api_key=api_key)
                 
-                # 🪐 1番目で100%成功した「types.Part.from_bytes」の書き方で送信
+                # 🪐 1番目で大成功した「types.Part.from_bytes」の完璧な配列ルールに修正しました
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=[
@@ -46,3 +46,4 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"AI解析エラーが発生しました: {e}")
+
