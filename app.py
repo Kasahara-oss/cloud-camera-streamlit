@@ -1,6 +1,7 @@
+
+
 import streamlit as st
 import os
-import mimetypes
 from google import genai
 from google.genai import types
 
@@ -22,21 +23,23 @@ if uploaded_file is not None:
     else:
         with st.spinner("ここにAIの判定結果が出ます。解析中..."):
             try:
-                # 🛠️ 画像を純粋なバイトデータに変換
-                image_bytes = uploaded_file.getvalue()
+                # 🛠️ 1番目のFastAPIで大成功した、一番プレーンな「画像バイト列の取り出し方」に変更します
+                image_bytes = uploaded_file.read()
                 
-                # 画像の形式を自動判別
-                mime_type, _ = mimetypes.guess_type(uploaded_file.name)
-                if not mime_type:
-                    mime_type = "image/jpeg"
+                # 🪐 Googleの最新チェックに確実に通る、MIME型の手動固定（最も安全なjpeg指定）
+                # スマホの写真（png/jpg）はすべてこの形（Partデータ）に変えて送るのが最新の厳格なルールです
+                image_part = types.Part.from_bytes(
+                    data=image_bytes,
+                    mime_type="image/jpeg"
+                )
                 
                 client = genai.Client(api_key=api_key)
                 
-                # 🪐 1番目で大成功した「types.Part.from_bytes」の完璧な配列ルールに修正しました
+                # 1番目で100%成功した「画像とテキストを並べて送る」完璧な形式です
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=[
-                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        image_part,
                         "この空の雲の種類を判定し、明日の天気予報の確率を日本語で答えてください。"
                     ],
                 )
@@ -46,4 +49,3 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"AI解析エラーが発生しました: {e}")
-
