@@ -1,15 +1,17 @@
 import streamlit as st
-from google import genai
 import os
+import mimetypes
+from google import genai
+from google.genai import types
 
 st.set_page_config(page_title="雲カメラ AI", page_icon="📸", layout="centered")
 st.title("📸 雲カメラ AI (Streamlit版)")
 st.write("撮影した写真をAIが判定し、雲の名前や天気の傾向を教えます。")
 
-# 🔑 Renderの「Environment」から自動的にAPIキーを読み込みます
+# 🔑 1番目と同じく、Renderの環境変数からAPIキーを確実に読み込みます
 api_key = os.environ.get("GEMINI_API_KEY")
 
-# 📸 スマホのカメラを起動、またはアルバムから写真を選択するボタン
+# 📸 スマホのカメラと連動するボタン
 uploaded_file = st.file_uploader("真ん中のボタンを押して撮影してください。", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
@@ -20,19 +22,27 @@ if uploaded_file is not None:
     else:
         with st.spinner("ここにAIの判定結果が出ます。解析中..."):
             try:
-                # 🤖 新しいGoogle GenAI SDK（2025/2026年標準）での初期化
-                client = genai.Client(api_key=api_key)
+                # 🛠️ 1番目の正常に動いたAI解析ロジックをそのまま再現
                 image_bytes = uploaded_file.read()
                 
-                # 🪐 無料枠の最新Flashモデルで画像を解析
+                # 画像の形式を自動判別（1番目と同じ確実な方法）
+                mime_type, _ = mimetypes.guess_type(uploaded_file.name)
+                if not mime_type:
+                    mime_type = "image/jpeg"
+                
+                client = genai.Client(api_key=api_key)
+                
+                # 🪐 1番目で100%成功した「types.Part.from_bytes」の書き方で送信
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model="gemini-2.5-flash",
                     contents=[
-                        {'mime_type': 'image/jpeg', 'data': image_bytes},
-                        "この画像に写っている雲の種類を特定し、その特徴と今後の天気の変化の予測を分かりやすく日本語で解説してください。"
-                    ]
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        "この空の雲の種類を判定し、明日の天気予報の確率を日本語で答えてください。"
+                    ],
                 )
-                st.subheader("🤖 AIの判定結果")
+                
+                st.subheader("🤖 AIからの判定結果")
                 st.write(response.text)
+                
             except Exception as e:
-                st.error(f"AI解析エラー: {e}")
+                st.error(f"AI解析エラーが発生しました: {e}")
