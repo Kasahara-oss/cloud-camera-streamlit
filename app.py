@@ -8,7 +8,7 @@ st.set_page_config(page_title="雲カメラ AI", page_icon="📸", layout="cente
 st.title("📸 雲カメラ AI (Streamlit版)")
 st.write("撮影した写真をAIが判定し、雲の名前や天気の傾向を教えます。")
 
-# 🔑 1番目と同じく、Renderの環境変数からAPIキーを確実に読み込みます
+# 🔑 Renderの環境変数からAPIキーを確実に読み込みます
 api_key = os.environ.get("GEMINI_API_KEY")
 
 # 📸 スマホのカメラと連動するボタン
@@ -22,10 +22,10 @@ if uploaded_file is not None:
     else:
         with st.spinner("ここにAIの判定結果が出ます。解析中..."):
             try:
-                # 🛠️ 1番目の正常に動いたAI解析ロジックをそのまま再現
-                image_bytes = uploaded_file.read()
+                # 🛠️ Streamlitの画像データを、1番目と同じ純粋なバイトデータに完全変換
+                image_bytes = uploaded_file.getvalue()
                 
-                # 画像の形式を自動判別（1番目と同じ確実な方法）
+                # 画像の形式を自動判別
                 mime_type, _ = mimetypes.guess_type(uploaded_file.name)
                 if not mime_type:
                     mime_type = "image/jpeg"
